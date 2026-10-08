@@ -1,5 +1,9 @@
 import { describe, expect, test } from "vitest";
-import { withTrailingSlash, withoutTrailingSlash } from "../src";
+import {
+  hasTrailingSlash,
+  withTrailingSlash,
+  withoutTrailingSlash,
+} from "../src";
 
 describe("withTrailingSlash, queryParams: false", () => {
   const tests = {
@@ -31,6 +35,10 @@ describe("withTrailingSlash, queryParams: true", () => {
     "foo?123": "foo/?123",
     "foo/?123": "foo/?123",
     "foo?123#abc": "foo/?123#abc",
+    "foo?redirect=/bar/": "foo/?redirect=/bar/",
+    "foo/?redirect=/bar/": "foo/?redirect=/bar/",
+    "foo#/bar/": "foo/#/bar/",
+    "foo/#/bar/": "foo/#/bar/",
     "/#abc": "/#abc",
     "#abc": "#abc",
     "#": "#",
@@ -87,6 +95,10 @@ describe("withoutTrailingSlash, queryParams: true", () => {
     "foo?k=/": "foo?k=/",
     "foo/?k=/": "foo?k=/",
     "foo/?k=/&x=y#abc": "foo?k=/&x=y#abc",
+    "foo/?redirect=/bar/": "foo?redirect=/bar/",
+    "foo?redirect=/bar/": "foo?redirect=/bar/",
+    "foo/#/bar/": "foo#/bar/",
+    "foo#/bar/": "foo#/bar/",
     "/a/#abc": "/a#abc",
     "/#abc": "/#abc",
   };
@@ -99,5 +111,25 @@ describe("withoutTrailingSlash, queryParams: true", () => {
 
   test("falsy value", () => {
     expect(withoutTrailingSlash()).toBe("/");
+  });
+});
+
+describe("hasTrailingSlash", () => {
+  test("respectQueryAndFragment: false", () => {
+    expect(hasTrailingSlash("/foo/")).toBe(true);
+    expect(hasTrailingSlash("/foo")).toBe(false);
+    expect(hasTrailingSlash("/foo/?query=true")).toBe(false);
+    expect(hasTrailingSlash("/foo?redirect=/bar/")).toBe(true);
+  });
+
+  test("respectQueryAndFragment: true", () => {
+    expect(hasTrailingSlash("/foo/", true)).toBe(true);
+    expect(hasTrailingSlash("/foo", true)).toBe(false);
+    expect(hasTrailingSlash("/foo/?query=true", true)).toBe(true);
+    expect(hasTrailingSlash("/foo?query=true", true)).toBe(false);
+    expect(hasTrailingSlash("/foo?redirect=/bar/", true)).toBe(false);
+    expect(hasTrailingSlash("/foo/?redirect=/bar/", true)).toBe(true);
+    expect(hasTrailingSlash("/foo#/bar/", true)).toBe(false);
+    expect(hasTrailingSlash("/foo/#/bar/", true)).toBe(true);
   });
 });
